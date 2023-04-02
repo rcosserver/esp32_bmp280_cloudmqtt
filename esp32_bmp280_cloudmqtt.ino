@@ -22,12 +22,12 @@ extern "C" {
 #include "ThingSpeak.h"
 
 #define WIFI_SSID "reboot"
-#define WIFI_PASSWORD "_______"
+#define WIFI_PASSWORD "_____"
 
 WiFiClient  client; //Создайте объект WiFiClient, который будет использоваться для подключения ESP32 к ThingSpeak
 
 unsigned long Channel_ID = 2092088;  //replace with your Channel ID
-const char * API_key = "________";  //replace with your API Key
+const char * API_key = "_____";  //replace with your API Key
 
 // Raspberry Pi Mosquitto MQTT Broker
 //#define MQTT_HOST IPAddress(192, 168, 1, XXX)
@@ -135,7 +135,7 @@ void setup() {
   mqttClient.onPublish(onMqttPublish);
   mqttClient.setServer(MQTT_HOST, MQTT_PORT);
   // If your broker requires authentication (username and password), set them below
-  mqttClient.setCredentials("_____", "______");
+  mqttClient.setCredentials("_____", "_____");
   connectToWifi();
 
   ThingSpeak.begin(client);  // Initialize ThingSpeak
@@ -152,7 +152,6 @@ void loop() {
     previousMillis = currentMillis;
     // New BME280 sensor readings
     temp = bme.readTemperature();
-    //temp = 1.8*bme.readTemperature() + 32;
     hum = bme.readHumidity();
     pres = bme.readPressure()/100.0F;
     
@@ -171,13 +170,22 @@ void loop() {
     Serial.printf("Publishing on topic %s at QoS 1, packetId: %i", MQTT_PUB_PRES, packetIdPub3);
     Serial.printf("Message: %.3f \n", pres);
 
-    int Data = ThingSpeak.writeField(Channel_ID, 1, temp,API_key);
- 
+    int Data = ThingSpeak.writeField(Channel_ID,1,temp,API_key); //температура
+    delay(30000);
     if(Data == 200){
-      Serial.println("Channel updated successfully!");
+      Serial.println("Температуру передали");
     }
     else{
-      Serial.println("Problem updating channel. HTTP error code " + String(Data));
+      Serial.println("Проблемы с передачей температуры. HTTP error code " + String(Data));
+    }
+
+    int Data2 = ThingSpeak.writeField(Channel_ID,2,hum,API_key); //влажность
+    delay(30000);
+    if(Data2 == 200){
+      Serial.println("Влажность передали");
+    }
+    else{
+      Serial.println("Проблемы с передачей влажности. HTTP error code " + String(Data2));
     }
     
   }
