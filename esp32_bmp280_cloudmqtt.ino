@@ -19,14 +19,21 @@ extern "C" {
 }
 #include <AsyncMqttClient.h>
 
+#include "ThingSpeak.h"
+
 #define WIFI_SSID "reboot"
-#define WIFI_PASSWORD "xxxxx"
+#define WIFI_PASSWORD "_______"
+
+WiFiClient  client; //Создайте объект WiFiClient, который будет использоваться для подключения ESP32 к ThingSpeak
+
+unsigned long Channel_ID = 2092088;  //replace with your Channel ID
+const char * API_key = "________";  //replace with your API Key
 
 // Raspberry Pi Mosquitto MQTT Broker
 //#define MQTT_HOST IPAddress(192, 168, 1, XXX)
 // For a cloud MQTT broker, type the domain name
-#define MQTT_HOST "cloudmqtt.com"
-#define MQTT_PORT xxxx
+#define MQTT_HOST "m12.cloudmqtt.com"
+#define MQTT_PORT _____
 
 // Temperature MQTT Topics
 #define MQTT_PUB_TEMP "esp32/bme280/temperature"
@@ -128,8 +135,12 @@ void setup() {
   mqttClient.onPublish(onMqttPublish);
   mqttClient.setServer(MQTT_HOST, MQTT_PORT);
   // If your broker requires authentication (username and password), set them below
-  mqttClient.setCredentials("xxxxxx", "xxxxxxx");
+  mqttClient.setCredentials("_____", "______");
   connectToWifi();
+
+  ThingSpeak.begin(client);  // Initialize ThingSpeak
+
+  
 }
 
 void loop() {
@@ -159,5 +170,15 @@ void loop() {
     uint16_t packetIdPub3 = mqttClient.publish(MQTT_PUB_PRES, 1, true, String(pres).c_str());                            
     Serial.printf("Publishing on topic %s at QoS 1, packetId: %i", MQTT_PUB_PRES, packetIdPub3);
     Serial.printf("Message: %.3f \n", pres);
+
+    int Data = ThingSpeak.writeField(Channel_ID, 1, temp,API_key);
+ 
+    if(Data == 200){
+      Serial.println("Channel updated successfully!");
+    }
+    else{
+      Serial.println("Problem updating channel. HTTP error code " + String(Data));
+    }
+    
   }
 }
